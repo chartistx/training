@@ -1,0 +1,302 @@
+SQL queries
+Tasks from: https://www.sql-practice.com/
+
+
+Task:
+
+Show first and last name, allergies from patients which have allergies 
+to either 'Penicillin' or 'Morphine'. Show results ordered ascending
+by allergies then by first_name then by last_name.
+
+SQL query:
+
+SELECT first_name,
+	last_name,
+	allergies
+FROM patients 
+WHERE allergies IN ('Penicillin','Morphine')
+ORDER BY allergies ASC,
+	first_name ASC,
+        last_name ASC;
+
+------------------------------------------------------
+Task:
+
+Show patient_id, diagnosis from admissions. 
+Find patients admitted multiple times for the same diagnosis.
+
+SQL query:
+
+SELECT patient_id,
+	diagnosis
+FROM admissions
+GROUP BY patient_id,
+	diagnosis
+HAVING COUNT(*)>1;
+
+--------------------------------------------------
+Task:
+
+Show the city and the total number of patients in the city.
+Order from most to least patients and then by city name ascending.
+
+SQL query:
+
+SELECT city,
+	count(*)
+FROM patients
+GROUP BY city
+ORDER BY count(*) DESC,
+    	city ASC;
+
+------------------------------------------------------------
+Task:
+
+Show first name, last name and role of every person that is either patient or doctor.
+The roles are either "Patient" or "Doctor"
+
+SQL query:
+
+SELECT first_name, last_name, 'Patient' as role
+FROM patients
+UNION ALL
+SELECT first_name,last_name,'Doctor' AS role
+FROM doctors;
+
+----------------------------------------------------------
+Task:
+
+Show all patient's first_name, last_name, and birth_date who were born in the 1970s decade. 
+Sort the list starting from the earliest birth_date.
+
+SQL query:
+
+SELECT first_name,
+    	last_name,
+    	birth_date
+FROM patients
+WHERE birth_date like '197%'
+ORDER BY birth_date ASC
+----------------------------------------------------------------
+Task:
+
+We want to display each patient's full name in a single column. 
+Their last_name in all upper letters must appear first, 
+then first_name in all lower case letters. 
+Separate the last_name and first_name with a comma. 
+Order the list by the first_name in decending order
+EX: SMITH,jane
+
+SQL query:
+
+SELECT CONCAT(UPPER(last_name),',',LOWER(first_name)) 
+FROM patients
+ORDER BY first_name DESC
+
+---------------------------------------------------------------
+Task:
+
+Show the province_id(s), sum of height; 
+where the total sum of its patient's height is greater than or equal to 7,000.
+
+SQL query:
+
+SELECT province_id, 
+	SUM(height) 
+FROM patients
+GROUP BY province_id
+HAVING SUM(height)>=7000
+-----------------------------------------------------------------
+Task:
+
+Show the difference between the largest weight and smallest 
+weight for patients with the last name 'Maroni'
+
+SQL query:
+
+SELECT (MAX(weight) - MIN(weight)) AS weight_max_minus_min 
+FROM patients
+WHERE last_name == 'Maroni'
+
+--------------------------------------------------------------------
+
+Task:
+
+Show all of the days of the month (1-31) and 
+how many admission_dates occurred on that day. 
+Sort by the day with most admissions to least admissions.
+
+SQL query:
+
+SELECT 	day(admission_date) AS day_of_moth, 
+    	COUNT(*) AS admissions_count
+FROM admissions
+GROUP BY DAY(admission_date)
+ORDER BY COUNT(*) DESC
+
+------------------------------------------------------------------------
+
+Task:
+Show all columns for patient_id 542's most recent admission_date.
+
+SQL query:
+
+SELECT * 
+FROM admissions
+WHERE patient_id =542
+GROUP BY patient_id
+HAVING admission_date = MAX(admission_date)
+
+-----------------------------------------------------------------------
+Task:
+
+Show patient_id, attending_doctor_id, and diagnosis for admissions that match one of the two criteria:
+1. patient_id is an odd number and attending_doctor_id is either 1, 5, or 19.
+2. attending_doctor_id contains a 2 and the length of patient_id is 3 characters.
+
+SQL query:
+
+SELECT patient_id,attending_doctor_id,diagnosis
+FROM admissions
+WHERE 	(
+      	patient_id % 2 = 1 
+      	AND attending_doctor_id in (1,5,19)
+    	)
+    	OR 
+    	(
+      	attending_doctor_id LIKE '%2%' 
+      	AND patient_id LIKE '___'
+    	)
+---------------------------------------------------------------------------------------------------------
+Task:
+
+Show first_name, last_name, and the total number of admissions attended for each doctor.
+
+SQL query:
+
+Every admission has been attended by a doctor.
+
+SELECT 	first_name,
+    	last_name, 
+    	count(*) AS admisions_count 
+FROM doctors
+INNER JOIN admissions ON 
+	admissions.attending_doctor_id = doctors.doctor_id
+GROUP BY first_name,
+    	last_name;
+
+-----------------------------------------------------------------------------------------------
+Task:
+
+For each doctor, display their id, full name,
+ and the first and last admission date they attended.
+
+SQL query:
+
+SELECT 	doctor_id, 
+    	CONCAT(first_name,' ',last_name) AS full_name,
+	MIN(admission_date) AS firs_date,
+    	MAX(admission_date) AS last_date
+FROM doctors
+INNER JOIN admissions ON 
+	admissions.attending_doctor_id = doctors.doctor_id
+GROUP BY doctor_id
+
+------------------------------------------------------------------------------
+Task:
+
+Display the total amount of patients for each province. Order by descending.
+
+SQL query:
+
+SELECT province_names.province_name, 
+	COUNT(*) AS patients
+FROM province_names
+JOIN patients ON 
+	patients.province_id = province_names.province_id
+GROUP BY patients.province_id
+ORDER BY COUNT(*) desc
+
+--------------------------------------------------------------------
+Task:
+
+For every admission, display the patient's full name, their admission diagnosis, 
+and their doctor's full name who diagnosed their problem.
+
+SQL query:
+
+SELECT CONCAT(patients.first_name,' ',patients.last_name) AS patient_name,
+    	admissions.diagnosis,
+    	CONCAT(doctors.first_name,' ',doctors.last_name) AS doctor_name
+FROM patients
+JOIN admissions 
+ON admissions.patient_id = patients.patient_id
+JOIN doctors
+ON doctors.doctor_id = admissions.attending_doctor_id
+
+-------------------------------------------------------------------------------------
+Task:
+
+display the first name, last name and number of duplicate patients based on their first name and last name.
+
+Ex: A patient with an identical name can be considered a duplicate.
+
+
+SQL query:
+
+SELECT 	first_name,
+	last_name, 
+	count(*)
+FROM patients
+GROUP BY first_name, 
+	last_name
+HAVING COUNT(*)>1
+
+-----------------------------------------------------------------------------
+Task:
+
+Display patient's full name,
+height in the units feet rounded to 1 decimal,
+weight in the unit pounds rounded to 0 decimals,
+birth_date,
+gender non abbreviated.
+
+Convert CM to feet by dividing by 30.48.
+Convert KG to pounds by multiplying by 2.205.
+
+SQL query:
+
+SELECT CONCAT(first_name,' ',last_name) AS full_name,
+    	ROUND(height/30.48,1) AS height,
+    	ROUND(weight*2.205,0)as weight,
+    	birth_date,
+    	CASE
+    		WHEN gender='M' THEN 'Male'
+        	ELSE 'Female'
+    	END AS gender
+FROM patients
+
+-------------------------------------------------------------------------------------
+Task:
+
+Show patient_id, first_name, last_name from patients 
+whose does not have any records in the admissions table. 
+(Their patient_id does not exist in any admissions.patient_id rows.)
+
+SQL query:
+
+SELECT 	patients.patient_id,
+	patients.first_name,
+	patients.last_name
+FROM patients
+LEFT JOIN admissions ON 
+	patients.patient_id = admissions.patient_id
+GROUP BY patients.patient_id
+HAVING admissions.patient_id IS NULL
+
+
+
+
+
+
+
